@@ -1,26 +1,32 @@
+mod models;
+
 use actix_web::{get, App, HttpRequest, HttpResponse, HttpServer, Responder, post, patch};
+use actix_web::web::Path;
+use actix_web::web::Json;
+use crate::models::{AddTaskRequest, UpdateTask};
 
-#[get("/greet")]
-async fn greet() -> impl Responder {
-    HttpResponse::Ok().body("Hello actix")
+#[get("/get_tasks")]
+async fn tasks() -> impl Responder {
+    HttpResponse::Ok().body("Your tasks")
 }
 
-#[post("/ex_post")]
-async fn ex_post() -> impl Responder {
-    HttpResponse::Ok().body("hello post")
+#[post("/add_task")]
+async fn add_task(body: Json<AddTaskRequest>) -> impl Responder {
+    HttpResponse::Ok().body(format!("Your title is: {}", body.title.clone()))
 }
 
-#[patch("/ex_update/{id}")]
-async fn ex_update() -> impl Responder {
-    HttpResponse::Ok().body("hello update")
+#[patch("/update_task/{uuid}")]
+async fn update_task(update_task: Path<UpdateTask>) -> impl Responder {
+    let uuid = update_task.into_inner().uuid;
+    HttpResponse::Ok().body(format!("Updating the task with: {uuid}"))
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let port = 5000;
+    let port = 5500;
     println!("Running on port {}...", port);
     HttpServer::new(||
-        App::new().service(greet).service(ex_post).service(ex_update)
+        App::new().service(tasks).service(add_task).service(update_task)
     ).bind(("127.0.0.1", port)).unwrap().run().await
 }
 
